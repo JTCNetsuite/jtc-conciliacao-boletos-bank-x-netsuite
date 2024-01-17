@@ -36,7 +36,7 @@ def getLiquidacao(dataIni, dataFim):
 
 
 
-    url = f'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento=12.01.2024&dataFimMovimento=12.01.2024&codigoEstadoTituloCobranca=6'
+    url = f'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento=16.01.2024&dataFimMovimento=16.01.2024&codigoEstadoTituloCobranca=6'
 
     req = requests.get(url=url, headers=headers).json()
     # print(req)
@@ -60,23 +60,79 @@ def getLiquidacao(dataIni, dataFim):
     return req['boletos']
 
     
-boletos = getLiquidacao('21.12.2023', '21.12.2023')
+# boletos = getLiquidacao('21.12.2023', '21.12.2023')
 
 
-dt = pd.DataFrame(boletos)
-print(dt)
-dt.to_excel('tetse.xlsx')
-valor_nornal = 0
-valor_pago_toal = 0
-valor_dif = 0
-for i in range(len(boletos)):
-    nosso = boletos[i]['numeroBoletoBB']
-    valor = boletos[i]['valorOriginal']
-    valor_pago = boletos[i]['valorPago']
+# dt = pd.DataFrame(boletos)
+# print(dt)
+# dt.to_excel('tetse.xlsx')
+# valor_nornal = 0
+# valor_pago_toal = 0
+# valor_dif = 0
+# for i in range(len(boletos)):
+#     nosso = boletos[i]['numeroBoletoBB']
+#     valor = boletos[i]['valorOriginal']
+#     valor_pago = boletos[i]['valorPago']
     # print(f'{nosso} , {valor} , {valor_pago}  {valor - valor_pago}' )
-    valor_nornal += valor
-    valor_pago_toal += valor_pago
-    valor_dif += (valor_pago - valor)
+    # valor_nornal += valor
+    # valor_pago_toal += valor_pago
+    # valor_dif += (valor_pago - valor)
 
 
-print(f'{valor_nornal}, {valor_pago_toal}, {valor_dif}')
+# print(f'{valor_nornal}, {valor_pago_toal}, {valor_dif}')
+
+
+
+def getBoletosVencidos():
+    tokenCredenciais = getToken()
+    token_type = tokenCredenciais['token_type']
+    token = tokenCredenciais['access_token']
+
+    
+    headers = {
+        "Authorization": token_type + " " + token,
+        "Accept": "application/json"
+    }
+
+
+    boletos = []
+
+
+    indice = 0
+
+    while True:
+       
+        url = f'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=A&agenciaBeneficiario=3221&contaBeneficiario=19570&boletoVencido=S&indice={indice}'
+        req = requests.get(url=url, headers=headers).json()
+        indicador = req['indicadorContinuidade']
+
+        if indicador == 'S':
+            indice = req['proximoIndice']
+            url += f'&indice={indice}'
+            tam = len(req['boletos'])
+
+            for i in range(tam):
+                boleto = req['boletos'][i]
+                boletos.append(boleto)
+        else:
+            tam = len(req['boletos'])
+
+            for i in range(tam):
+                boleto = req['boletos'][i]
+                boletos.append(boleto)
+
+            break
+        
+    return boletos
+    
+
+def transDataTable():
+    boletos = getBoletosVencidos()
+
+    dt = pd.DataFrame(boletos)
+
+    dt.to_excel("./boletos_vencidos.xlsx")
+
+
+transDataTable()
+
