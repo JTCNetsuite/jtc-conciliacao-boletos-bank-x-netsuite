@@ -23,7 +23,7 @@ def getToken():
 
 
 def getLiquidacao(dataIni, dataFim):
-    
+    # print(dataIni, dataFim)
     tokenCredenciais = getToken()
     token_type = tokenCredenciais['token_type']
     token = tokenCredenciais['access_token']
@@ -36,7 +36,7 @@ def getLiquidacao(dataIni, dataFim):
 
 
 
-    url = f'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento=16.01.2024&dataFimMovimento=16.01.2024&codigoEstadoTituloCobranca=6'
+    url = f'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento={dataIni}&dataFimMovimento={dataFim}&codigoEstadoTituloCobranca=6'
 
     req = requests.get(url=url, headers=headers).json()
     # print(req)
@@ -50,7 +50,7 @@ def getLiquidacao(dataIni, dataFim):
             req['boletos'].append(req2['boletos'][i])
 
         # if req2['indicadorContinuidade'] == "S":
-        #     url_n = 'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento=02.01.2024&dataFimMovimento=02.01.2024&codigoEstadoTituloCobranca=6&indice=600'
+        #     url_n = 'https://api.bb.com.br/cobrancas/v2/boletos?gw-dev-app-key=4a5e515a85aa0cb8a74b71646d5ec025&indicadorSituacao=B&agenciaBeneficiario=3221&contaBeneficiario=19570&dataInicioMovimento=26.12.2023&dataFimMovimento=26.12.2023&codigoEstadoTituloCobranca=6&indice=600'
         #     req3 = requests.get(url=url_n, headers=headers).json()
 
         #     for i in range(len(req3['boletos'])):
@@ -60,28 +60,31 @@ def getLiquidacao(dataIni, dataFim):
     return req['boletos']
 
     
-# boletos = getLiquidacao('21.12.2023', '21.12.2023')
 
 
-# dt = pd.DataFrame(boletos)
-# print(dt)
-# dt.to_excel('tetse.xlsx')
-# valor_nornal = 0
-# valor_pago_toal = 0
-# valor_dif = 0
-# for i in range(len(boletos)):
-#     nosso = boletos[i]['numeroBoletoBB']
-#     valor = boletos[i]['valorOriginal']
-#     valor_pago = boletos[i]['valorPago']
-    # print(f'{nosso} , {valor} , {valor_pago}  {valor - valor_pago}' )
-    # valor_nornal += valor
-    # valor_pago_toal += valor_pago
-    # valor_dif += (valor_pago - valor)
+def transformData():
+    dataIn = input("data inicio: ")
+    dataFim = input("data Fim: ")
+    boletos = getLiquidacao(dataIn, dataFim)
+    dt = pd.DataFrame(boletos)
+    print(dt)
+    dt.to_excel('tetse.xlsx')
+    valor_nornal = 0
+    valor_pago_toal = 0
+    valor_dif = 0
+    for i in range(len(boletos)):
+        nosso = boletos[i]['numeroBoletoBB']
+        valor = boletos[i]['valorOriginal']
+        valor_pago = boletos[i]['valorPago']
+        # print(f'{nosso} , {valor} , {valor_pago}  {valor - valor_pago}' )
+        valor_nornal += valor
+        valor_pago_toal += valor_pago
+        valor_dif += (valor_pago - valor)
 
 
-# print(f'{valor_nornal}, {valor_pago_toal}, {valor_dif}')
+    print(f'{valor_nornal}, {valor_pago_toal}, {valor_dif}')
 
-
+transformData()
 
 def getBoletosVencidos():
     tokenCredenciais = getToken()
@@ -134,5 +137,5 @@ def transDataTable():
     dt.to_excel("./boletos_vencidos.xlsx")
 
 
-transDataTable()
+# transDataTable()
 
